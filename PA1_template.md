@@ -5,7 +5,8 @@ PA1. Activity analysis
 
 At the beginning, we should load required libraries and set default options for our markdown file.
 
-```{r global options & libraries}
+
+```r
 library(ggplot2)
 library(plyr)
 library(knitr)
@@ -16,7 +17,8 @@ opts_chunk$set(echo=TRUE,results="hide")
 
 Next stage - reading and formatting input data.
 
-```{r inputs}
+
+```r
 data<-read.csv("activity.csv")
 data$date<-as.Date(data$date)
 ```
@@ -27,28 +29,33 @@ At this stage we should do the following tasks.
 
 1. Calculate the total number of steps taken per day.
 
-```{r total_steps}
+
+```r
 total_steps<-tapply(data$steps,data$date,sum,na.rm=TRUE)
 ```
 
 2. Make a histogram of the total number of steps taken each day.
 
-```{r histogram, results='asis'}
+
+```r
 qplot(total_steps,xlab="Steps Per Day")
 ```
 
+![plot of chunk histogram](figure/histogram-1.png) 
+
 3. Calculate and report the mean and median of the total number of steps taken per day.
 
-```{r mean_median}
+
+```r
 mean_days<-mean(total_steps,na.rm=TRUE)
 median_days<-median(total_steps,na.rm=TRUE)
 ```
 
 Our caclulation shows the following results:
 
-* mean - `r round(mean_days,0)`;
+* mean - 9354;
 
-* median - `r median_days`.
+* median - 10395.
 
 Note: NA values were removed from the analysis.
 
@@ -56,7 +63,8 @@ Note: NA values were removed from the analysis.
 
 To perform analysis of the average daily activity pattern we could use tapply function to calculate means of the steps by the factor - intervals.
 
-```{r mean_interval}
+
+```r
 mean_interval<-tapply(data$steps,data$interval,mean,na.rm=TRUE)
 mean_interval<-data.frame(as.numeric(names(mean_interval)),mean_interval)
 colnames(mean_interval)<-c("interval","mean_steps")
@@ -64,15 +72,19 @@ colnames(mean_interval)<-c("interval","mean_steps")
 
 Time series of means is shown below.
 
-```{r time_series_interval,results='asis'}
+
+```r
 qplot(interval,mean_steps,data=mean_interval,geom="line",xlab="Interval",ylab="Average Number of Steps")
 ```
 
-```{r higherst_mean_interval}
+![plot of chunk time_series_interval](figure/time_series_interval-1.png) 
+
+
+```r
 mean_interval$interval[which(mean_interval$mean_steps==max(mean_interval$mean_steps))]
 ```
 
-The above code shows that the interval with the highest average number of steps is `r mean_interval$interval[which(mean_interval$mean_steps==max(mean_interval$mean_steps))]`.
+The above code shows that the interval with the highest average number of steps is 835.
 
 ### 4. Imputing missing values
 
@@ -80,7 +92,8 @@ As it was mentioned above, our dataset has NA values in the column "steps".
 
 Let's fill in them by average number of steps for such interval (calculated at the previous stage).
 
-```{r filling_in_na}
+
+```r
 length(which(is.na(data$steps)))
 data_wo_na<-data
 for (i in 1:length(data_wo_na$steps))
@@ -90,20 +103,24 @@ for (i in 1:length(data_wo_na$steps))
 
 And now we can take a quick look at the updated histogram.
 
-```{r new_histogram,results='asis'}
+
+```r
 total_steps_wo_na<-tapply(data_wo_na$steps,data_wo_na$date,sum)
 qplot(total_steps_wo_na,xlab="Steps Per Day")
 ```
 
-```{r new_mean_median}
+![plot of chunk new_histogram](figure/new_histogram-1.png) 
+
+
+```r
 new_mean_days<-mean(total_steps_wo_na)
 new_median_days<-median(total_steps_wo_na)
 ```
 
 Statistics of the filled-in data:
 
-* mean - `r as.integer(round(new_mean_days,0))`;
-* median - `r as.integer(new_median_days)`.
+* mean - 10766;
+* median - 10766.
 
 As we see, both statistics has increased. It is sounds logic because we has increased total number of steps in days that had NAs.
 
@@ -111,7 +128,8 @@ As we see, both statistics has increased. It is sounds logic because we has incr
 
 Finally, the followng code could be use to look at average number of steps by intervals separetly on weekdays and weekend.
 
-```{r weekday_analysis,results='asis'}
+
+```r
 date_dayname<-weekdays(data_wo_na$date)
 date_type<-sapply(date_dayname,function(x) {if ((x=="Saturday")||(x=="Sunday"))
       "weekend" else "weekday"})
@@ -126,6 +144,8 @@ colnames(mean_interval_wo_na)<-c("interval","mean_steps","date_type")
 qplot(interval,mean_steps,data=mean_interval_wo_na,geom=c("line","smooth"),
       method="lm",facets=.~date_type,xlab="Interval",ylab="Average Number of Steps")
 ```
+
+![plot of chunk weekday_analysis](figure/weekday_analysis-1.png) 
 
 Our analysis shows:
 
